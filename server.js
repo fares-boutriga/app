@@ -81,7 +81,7 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
+app.get("/test", (req, res) => {
   res.send(`<pre>Nothing to see here fares.
 Checkout README.md to start.</pre>`);
 });
