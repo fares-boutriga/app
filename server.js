@@ -8,11 +8,16 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import router from "./routes/index.js";
+import controller from "./controllers/projectController.js";
+import sendMessage from "./utils/messages.js";
+import { myData } from "./mydata.js";
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-const { WEBHOOK_VERIFY_TOKEN, GRAPH_API_TOKEN, PORT } = process.env;
+const { WEBHOOK_VERIFY_TOKEN, GRAPH_API_TOKEN, PORT, ENVIRONMENT } =
+  process.env;
 
 app.post("/webhook", async (req, res) => {
   // log incoming messages
@@ -21,43 +26,22 @@ app.post("/webhook", async (req, res) => {
   // check if the webhook request contains a message
   // details on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
   const message = req.body.entry?.[0]?.changes[0]?.value?.messages?.[0];
-
+  // let to= message.from + message.text.body
   // check if the incoming message contains text
   if (message?.type === "text") {
     // extract the business number to send the reply from it
-    const business_phone_number_id =
-      req.body.entry?.[0].changes?.[0].value?.metadata?.phone_number_id;
-
-    // send a reply message as per the docs here https://developers.facebook.com/docs/whatsapp/cloud-api/reference/messages
-    await axios({
-      method: "POST",
-      url: `https://graph.facebook.com/v18.0/${business_phone_number_id}/messages`,
-      headers: {
-        Authorization: `Bearer ${GRAPH_API_TOKEN}`,
-      },
-      data: {
-        messaging_product: "whatsapp",
-        to: message.from,
-        text: { body: "Echo: " + message.text.body },
-        context: {
-          message_id: message.id, // shows the message as a reply to the original user message
-        },
-      },
-    });
-
-    // mark incoming message as read
-    await axios({
-      method: "POST",
-      url: `https://graph.facebook.com/v18.0/${business_phone_number_id}/messages`,
-      headers: {
-        Authorization: `Bearer ${GRAPH_API_TOKEN}`,
-      },
-      data: {
-        messaging_product: "whatsapp",
-        status: "read",
-        message_id: message.id,
-      },
-    });
+    const { project, responsables } = await controller.findResponsableByPhone(
+      message.from
+    );
+    if (ENVIRONMENT === "dev") {
+      myData.responsables.map(async (data) => {
+        await sendMessage(data.tele, message.text.body);
+      });
+    } else {
+      await responsables.map(async (responsable) => {
+        await sendMessage(responsable.tele, message.text.body);
+      });
+    }
   }
 
   res.sendStatus(200);
@@ -85,6 +69,8 @@ app.get("/test", (req, res) => {
   res.send(`<pre>Nothing to see here fares.
 Checkout README.md to start.</pre>`);
 });
+
+app.use("/api", router); // handle all other routes with the projectRoutes
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port: ${PORT}`);
