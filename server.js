@@ -10,7 +10,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import router from "./routes/index.js";
 import controller from "./controllers/projectController.js";
-import {sendMessage} from "./utils/messages.js";
+import { sendAudioMessage, sendImageMessage, sendMessage } from "./utils/messages.js";
 import { myData } from "./mydata.js";
 dotenv.config();
 const app = express();
@@ -28,20 +28,31 @@ app.post("/webhook", async (req, res) => {
   const message = req.body.entry?.[0]?.changes[0]?.value?.messages?.[0];
   // let to= message.from + message.text.body
   // check if the incoming message contains text
+      // extract the business number to send the reply from it
+      const { project, responsables } = await controller.findResponsableByPhone(
+        message.from
+      );
   if (message?.type === "text") {
-    // extract the business number to send the reply from it
-    const { project, responsables } = await controller.findResponsableByPhone(
-      message.from
-    );
+
     if (ENVIRONMENT === "dev") {
       myData.responsables.map(async (data) => {
         await sendMessage(data.tele, message.text.body);
       });
     } else {
-      await responsables.map(async (responsable) => {
+      await responsables?.map(async (responsable) => {
         await sendMessage(responsable.tele, message.text.body);
       });
     }
+  }
+  if (message?.type === "image") {
+    await responsables?.map(async (responsable) => {
+      await sendImageMessage(responsable.tele, message.image.id);
+    });
+  }
+  if (message?.type === "image") {
+    await responsables?.map(async (responsable) => {
+      await sendAudioMessage(responsable.tele, message.audio.id);
+    });
   }
 
   res.sendStatus(200);
@@ -65,7 +76,7 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-app.get("/test", (req, res) => {
+app.get("/", (req, res) => {
   res.send(`<pre>Nothing to see here fares.
 Checkout README.md to start.</pre>`);
 });

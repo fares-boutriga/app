@@ -54,5 +54,30 @@ const sendImageMessage = async (phoneNumber, media_object_id) => {
     return error;
   }
 };
-export  {sendMessage, sendImageMessage};
+const sendAudioMessage = async (phoneNumber, media_object_id) => {
+  try {
+    const url = `https://graph.facebook.com/v22.0/${FROM_PHONE_NUMBER_ID}/messages`;
+    const headers = {
+      Authorization: `Bearer ${WEBHOOK_VERIFY_TOKEN}`,
+      'Content-Type': 'application/json',
+    };
+    const data = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: phoneNumber,
+      type: 'audio',
+      audio: {
+        id: media_object_id,
+      },
+    };
+
+    const response = await axios.post(url, data, { headers });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+export  {sendMessage, sendImageMessage, sendAudioMessage};
 // sendMessage();
