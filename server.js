@@ -10,7 +10,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import router from "./routes/index.js";
 import controller from "./controllers/projectController.js";
-import { sendAudioMessage, sendImageMessage, sendMessage } from "./utils/messages.js";
+import { sendAudioMessage, sendDocumentMessage, sendImageMessage, sendMessage, sendReactionMessage } from "./utils/messages.js";
 import { myData } from "./mydata.js";
 dotenv.config();
 const app = express();
@@ -49,9 +49,19 @@ app.post("/webhook", async (req, res) => {
       await sendImageMessage(responsable.tele, message.image.id);
     });
   }
-  if (message?.type === "image") {
+  if (message?.type === "audio") {
     await responsables?.map(async (responsable) => {
       await sendAudioMessage(responsable.tele, message.audio.id);
+    });
+  }
+  if (message?.type === "reaction") {
+    await responsables?.map(async (responsable) => {
+      await sendReactionMessage(responsable.tele, message.id, message.reaction.emoji);
+    });
+  }
+  if (message?.type === "document") {
+    await responsables?.map(async (responsable) => {
+      await sendDocumentMessage(responsable.tele, message.document.id, message.document.filename);
     });
   }
 
