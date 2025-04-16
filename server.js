@@ -10,7 +10,7 @@ import axios from "axios";
 import dotenv from "dotenv";
 import router from "./routes/index.js";
 import controller from "./controllers/projectController.js";
-import sendMessage from "./utils/messages.js";
+import {sendMessage} from "./utils/messages.js";
 import { myData } from "./mydata.js";
 dotenv.config();
 const app = express();

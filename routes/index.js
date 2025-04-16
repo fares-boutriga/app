@@ -3,7 +3,7 @@ const router = express.Router();
 import controller from "../controllers/projectController.js";
 import dotenv from "dotenv";
 import axios from "axios";
-import sendMessage from "../utils/messages.js";
+import {sendMessage ,sendImageMessage} from "../utils/messages.js";
 dotenv.config();
 const { WEBHOOK_VERIFY_TOKEN, GRAPH_API_TOKEN, PORT ,FROM_PHONE_NUMBER_ID} = process.env;
 
@@ -23,7 +23,7 @@ router.delete("/responsables/:id", controller.deleteResponsable);
 router.post('/fares', async ()=>{
 
     try {
-       await sendMessage('21654258313', 'Hello from the server!')
+       await sendImageMessage('21654258313', '976070004643027')
 
     } catch (err) {
       console.error("Error fetching project and responsables:", err.message);
