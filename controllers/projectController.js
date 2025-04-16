@@ -133,6 +133,42 @@ const ProjectController = {
     }
   },
   
+  linkProjetToResponsable: async (req, res) => {
+    try {
+      const { projet_id, responsable_id } = req.body;
+
+      const db = await connectMySQL();
+  
+      // 1. Check if the project exists
+      const [projetRows] = await db.execute(
+        `SELECT id FROM projet WHERE id = ?`,
+        [projet_id]
+      );
+      if (projetRows.length === 0) {
+        return { success: false, message: "Project not found" };
+      }
+  
+      // 2. Check if the responsable exists
+      const [responsableRows] = await db.execute(
+        `SELECT id FROM responsable WHERE id = ?`,
+        [responsable_id]
+      );
+      if (responsableRows.length === 0) {
+        return { success: false, message: "Responsable not found" };
+      }
+  
+      // 3. Insert the relation
+      await db.execute(
+        `INSERT IGNORE INTO projet_has_responsable (projet_id, responsable_id) VALUES (?, ?)`,
+        [projet_id, responsable_id]
+      );
+  
+      res.status(200).json({ success: true, message: "Relation created successfully" }); 
+    } catch (err) {
+      console.error("Error linking project to responsable:", err.message);
+      res.status(400).json({ success: false, message: err.message });
+    }
+  },
   
 
   // ====== RESPONSABLE METHODS ======

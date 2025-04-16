@@ -13,6 +13,7 @@ router.get("/projets", controller.getAllProjets);
 router.get("/projets/:id", controller.getProjetById);
 router.put("/projets/:id", controller.updateProjet);
 router.delete("/projets/:id", controller.deleteProjet);
+router.post("/projets/link", controller.linkProjetToResponsable);
 
 // Responsable routes
 router.post("/responsables", controller.createResponsable);
